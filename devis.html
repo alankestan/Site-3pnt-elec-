@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3PNT ELEC - Demander un devis</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #1a2a44; background: #f5f7fb; line-height: 1.6; }
+    header { background: #0b2a5b; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .logo { color: #ffc400; font-size: 28px; font-weight: bold; letter-spacing: 1px; }
+    nav a { color: #ffffff; text-decoration: none; margin-left: 24px; font-weight: bold; }
+    nav a:hover { color: #ffc400; }
+    main { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #0b2a5b; text-align: center; margin-bottom: 8px; }
+    .intro { text-align: center; margin-bottom: 32px; }
+    .categorie { background: #ffffff; border-top: 6px solid #ffc400; border-radius: 10px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .categorie h2 { color: #1e56b3; margin-bottom: 16px; }
+    .ligne { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e3e8f2; gap: 12px; flex-wrap: wrap; }
+    .ligne:last-child { border-bottom: none; }
+    .nom { flex: 1; min-width: 200px; }
+    .prix { color: #0b2a5b; font-weight: bold; min-width: 80px; text-align: right; }
+    input[type=number] { width: 70px; padding: 8px; font-size: 16px; border: 2px solid #1e56b3; border-radius: 6px; text-align: center; }
+    .total { background: #0b2a5b; color: #ffffff; border-radius: 10px; padding: 24px; text-align: center; }
+    .total .montant { color: #ffc400; font-size: 40px; font-weight: bold; }
+    .bouton { margin-top: 16px; background: #ffc400; color: #0b2a5b; padding: 14px 32px; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
+    .bouton:hover { background: #ffd84d; }
+    .bouton:disabled { opacity: 0.6; cursor: wait; }
+    .note { font-size: 14px; margin-top: 12px; opacity: 0.85; }
+    .resultat { background: #ffffff; border-left: 6px solid #1e56b3; border-radius: 10px; padding: 24px; margin-top: 24px; white-space: pre-wrap; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: none; }
+    .resultat h2 { color: #0b2a5b; margin-bottom: 12px; white-space: normal; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">⚡ 3PNT ELEC</div>
+    <nav>
+      <a href="index.html">Accueil</a>
+      <a href="services.html">Services</a>
+      <a href="devis.html">Devis</a>
+      <a href="galerie.html">Galerie</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Demander un devis</h1>
+    <p class="intro">Choisissez vos articles et indiquez la quantité. Le total se calcule tout seul, puis l'IA prépare votre devis.</p>
+
+    <section class="categorie">
+      <h2>💡 Électricité</h2>
+      <div class="ligne"><span class="nom">Prise standard</span><span class="prix">25 €</span><input type="number" min="0" value="0" data-prix="25" data-nom="Prise standard"></div>
+      <div class="ligne"><span class="nom">Interrupteur simple</span><span class="prix">30 €</span><input type="number" min="0" value="0" data-prix="30" data-nom="Interrupteur simple"></div>
+      <div class="ligne"><span class="nom">Prise design</span><span class="prix">45 €</span><input type="number" min="0" value="0" data-prix="45" data-nom="Prise design"></div>
+      <div class="ligne"><span class="nom">Prise connectée</span><span class="prix">70 €</span><input type="number" min="0" value="0" data-prix="70" data-nom="Prise connectée"></div>
+      <div class="ligne"><span class="nom">Tableau électrique</span><span class="prix">650 €</span><input type="number" min="0" value="0" data-prix="650" data-nom="Tableau électrique"></div>
+    </section>
+
+    <section class="categorie">
+      <h2>🪵 Parquet (prix par m²)</h2>
+      <div class="ligne"><span class="nom">Parquet stratifié</span><span class="prix">30 €/m²</span><input type="number" min="0" value="0" data-prix="30" data-nom="Parquet stratifié (m²)"></div>
+      <div class="ligne"><span class="nom">Parquet contrecollé</span><span class="prix">55 €/m²</span><input type="number" min="0" value="0" data-prix="55" data-nom="Parquet contrecollé (m²)"></div>
+      <div class="ligne"><span class="nom">Parquet massif</span><span class="prix">85 €/m²</span><input type="number" min="0" value="0" data-prix="85" data-nom="Parquet massif (m²)"></div>
+    </section>
+
+    <section class="total">
+      <p>Total estimé</p>
+      <p class="montant" id="total">0 €</p>
+      <button class="bouton" id="bouton-devis">Demander mon devis</button>
+      <p class="note">Estimation indicative. Le devis définitif est confirmé par 3PNT ELEC.</p>
+    </section>
+
+    <section class="resultat" id="resultat">
+      <h2>Votre devis</h2>
+      <div id="texte-devis"></div>
+    </section>
+  </main>
+
+  <script>
+    var champs = document.querySelectorAll('input[type=number]');
+    var affichage = document.getElementById('total');
+    var bouton = document.getElementById('bouton-devis');
+    var zoneResultat = document.getElementById('resultat');
+    var texteDevis = document.getElementById('texte-devis');
+
+    function calculer() {
+      var somme = 0;
+      champs.forEach(function (champ) {
+        somme += (parseFloat(champ.value) || 0) * parseFloat(champ.dataset.prix);
+      });
+      affichage.textContent = somme.toLocaleString('fr-FR') + ' €';
+    }
+
+    champs.forEach(function (champ) {
+      champ.addEventListener('input', calculer);
+    });
+
+    bouton.addEventListener('click', async function () {
+      var travaux = [];
+      champs.forEach(function (champ) {
+        var quantite = parseFloat(champ.value) || 0;
+        if (quantite > 0) {
+          travaux.push({
+            article: champ.dataset.nom,
+            quantite: quantite,
+            prix_unitaire: parseFloat(champ.dataset.prix)
+          });
+        }
+      });
+
+      if (travaux.length === 0) {
+        alert('Choisissez au moins un article avant de demander un devis.');
+        return;
+      }
+
+      bouton.disabled = true;
+      bouton.textContent = 'L\'IA prépare votre devis...';
+      zoneResultat.style.display = 'none';
+
+      try {
+        var reponse = await fetch('/api/devis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ travaux: travaux })
+        });
+        var data = await reponse.json();
+        texteDevis.textContent = data.devis || data.error || 'Une erreur est survenue.';
+      } catch (e) {
+        texteDevis.textContent = 'Impossible de contacter le serveur. Réessayez dans un instant.';
+      }
+
+      zoneResultat.style.display = 'block';
+      bouton.disabled = false;
+      bouton.textContent = 'Demander mon devis';
+      zoneResultat.scrollIntoView({ behavior: 'smooth' });
+    });
+  </script>
+
+</body>
+</html>
+
