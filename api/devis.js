@@ -3,20 +3,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Methode non autorisee' });
   }
 
-  const { travaux, details } = req.body || {};
+  const { travaux } = req.body || {};
 
   if (!travaux || !travaux.length) {
     return res.status(400).json({ error: 'Aucun travaux choisi' });
   }
 
   if (!process.env.GROQ_API_KEY) {
-    return res.status(500).json({ error: 'Cle GROQ_API_KEY introuvable sur le serveur.' });
+    return res.status(200).json({ devis: 'Voici le detail de votre estimation.' });
   }
 
-  const prompt = `Tu es l'assistant de devis de 3PNT ELEC, une entreprise d'electricite et de renovation.
-Le client demande les travaux suivants : ${JSON.stringify(travaux)}.
-Details supplementaires : ${details || 'aucun'}.
-Genere un devis clair en francais avec : une ligne par poste (description, quantite, prix unitaire en euros, total), puis le total general. Utilise des prix d'exemple realistes. Termine en precisant que le devis est une estimation non contractuelle.`;
+  const prompt = `Tu es l'assistant de 3PNT ELEC, une entreprise d'electricite et de renovation.
+Le client a choisi : ${JSON.stringify(travaux)}.
+Ecris uniquement une courte introduction de devis en francais, 2 phrases maximum, polie et professionnelle, qui resume les travaux demandes. Ne donne aucun prix, aucun tableau, aucune liste.`;
 
   try {
     const reponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -35,13 +34,12 @@ Genere un devis clair en francais avec : une ligne par poste (description, quant
     const data = await reponse.json();
 
     if (!reponse.ok) {
-      const message = data.error?.message || JSON.stringify(data);
-      return res.status(200).json({ devis: 'Erreur Groq (' + reponse.status + ') : ' + message });
+      return res.status(200).json({ devis: 'Voici le detail de votre estimation.' });
     }
 
-    const texte = data.choices?.[0]?.message?.content || 'Pas de reponse de l IA.';
+    const texte = data.choices?.[0]?.message?.content || 'Voici le detail de votre estimation.';
     return res.status(200).json({ devis: texte });
   } catch (e) {
-    return res.status(200).json({ devis: 'Erreur serveur : ' + e.message });
+    return res.status(200).json({ devis: 'Voici le detail de votre estimation.' });
   }
 }
