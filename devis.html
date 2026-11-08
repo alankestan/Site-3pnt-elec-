@@ -21,12 +21,19 @@
     .nom { flex: 1; min-width: 200px; }
     .prix { color: #0b2a5b; font-weight: bold; min-width: 80px; text-align: right; }
     input[type=number] { width: 70px; padding: 8px; font-size: 16px; border: 2px solid #1e56b3; border-radius: 6px; text-align: center; }
+    input[type=url], input[type=text] { width: 100%; padding: 10px; font-size: 16px; border: 2px solid #1e56b3; border-radius: 6px; margin-bottom: 10px; }
+    .rangee { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .rangee input[type=number] { width: 100px; }
     .total { background: #0b2a5b; color: #ffffff; border-radius: 10px; padding: 24px; text-align: center; }
     .total .montant { color: #ffc400; font-size: 40px; font-weight: bold; }
     .bouton { margin-top: 16px; background: #ffc400; color: #0b2a5b; padding: 14px 32px; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
     .bouton:hover { background: #ffd84d; }
     .bouton:disabled { opacity: 0.6; cursor: wait; }
+    .bouton-petit { margin-top: 0; padding: 10px 20px; font-size: 16px; background: #1e56b3; color: #ffffff; }
+    .bouton-petit:hover { background: #2a6bd6; }
     .note { font-size: 14px; margin-top: 12px; opacity: 0.85; }
+    #message-lien { margin-top: 10px; font-size: 15px; }
+    #article-trouve { margin-top: 12px; padding: 12px; background: #f5f7fb; border-radius: 8px; display: none; }
 
     #devis-final { display: none; background: #ffffff; border-radius: 10px; padding: 32px; margin-top: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     .devis-entete { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-bottom: 4px solid #ffc400; padding-bottom: 16px; margin-bottom: 20px; }
@@ -64,7 +71,7 @@
 
   <main>
     <h1>Demander un devis</h1>
-    <p class="intro">Choisissez vos articles et indiquez la quantité. Le total se calcule tout seul, puis votre devis est préparé.</p>
+    <p class="intro">Choisissez vos articles et indiquez la quantité, ou collez le lien d'un article trouvé en magasin. Le total se calcule tout seul.</p>
 
     <section class="categorie">
       <h2>💡 Électricité</h2>
@@ -80,6 +87,30 @@
       <div class="ligne"><span class="nom">Parquet stratifié</span><span class="prix">30 €/m²</span><input type="number" min="0" value="0" data-prix="30" data-nom="Parquet stratifié" data-unite="m²"></div>
       <div class="ligne"><span class="nom">Parquet contrecollé</span><span class="prix">55 €/m²</span><input type="number" min="0" value="0" data-prix="55" data-nom="Parquet contrecollé" data-unite="m²"></div>
       <div class="ligne"><span class="nom">Parquet massif</span><span class="prix">85 €/m²</span><input type="number" min="0" value="0" data-prix="85" data-nom="Parquet massif" data-unite="m²"></div>
+    </section>
+
+    <section class="categorie">
+      <h2>🔗 Un article trouvé ailleurs ?</h2>
+      <p style="margin-bottom:10px;">Collez le lien de l'article : l'IA cherche son prix et l'ajoute au devis avec la main-d'œuvre.</p>
+      <input type="url" id="lien-article" placeholder="https://...">
+      <div class="rangee">
+        <select id="type-travail" style="padding:10px; font-size:16px; border:2px solid #1e56b3; border-radius:6px;">
+          <option value="parquet">Parquet (pose au m²)</option>
+          <option value="electricite">Électricité (pose à l'unité)</option>
+        </select>
+        <input type="number" id="quantite-lien" min="1" value="1" title="Quantité ou m²">
+        <button class="bouton bouton-petit" id="bouton-lien">Chercher le prix</button>
+      </div>
+      <p id="message-lien"></p>
+      <div id="article-trouve">
+        <div><strong id="article-nom"></strong></div>
+        <div class="rangee">
+          <span>Prix de l'article :</span>
+          <input type="number" id="article-prix" min="0" step="0.01">
+          <span id="article-unite"></span>
+        </div>
+        <button class="bouton bouton-petit" id="bouton-ajouter-lien" style="margin-top:10px;">Ajouter au devis</button>
+      </div>
     </section>
 
     <section class="total">
@@ -129,10 +160,18 @@
   </main>
 
   <script>
-    var champs = document.querySelectorAll('input[type=number]');
+    // ===== A CHANGER : prix de la main-d'oeuvre provisoires =====
+    var MAIN_OEUVRE_PARQUET_M2 = 20;      // A CHANGER : euros par m² pour poser du parquet
+    var MAIN_OEUVRE_ELEC_UNITE = 15;      // A CHANGER : euros par article électrique posé
+    var MAIN_OEUVRE_LIBELLE = 'Main-d\'œuvre (pose)';
+    // =============================================================
+
+    var champs = document.querySelectorAll('input[type=number][data-prix]');
     var affichage = document.getElementById('total');
     var bouton = document.getElementById('bouton-devis');
     var zoneDevis = document.getElementById('devis-final');
+    var articlesLien = [];
+    var articleEnCours = null;
 
     function euros(n) {
       return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -143,11 +182,77 @@
       champs.forEach(function (champ) {
         somme += (parseFloat(champ.value) || 0) * parseFloat(champ.dataset.prix);
       });
+      articlesLien.forEach(function (a) {
+        somme += a.quantite * (a.prix + a.mainOeuvre);
+      });
       affichage.textContent = somme.toLocaleString('fr-FR') + ' €';
     }
 
     champs.forEach(function (champ) {
       champ.addEventListener('input', calculer);
+    });
+
+    var boutonLien = document.getElementById('bouton-lien');
+    var messageLien = document.getElementById('message-lien');
+    var blocTrouve = document.getElementById('article-trouve');
+
+    boutonLien.addEventListener('click', async function () {
+      var url = document.getElementById('lien-article').value.trim();
+      if (!/^https?:\/\//i.test(url)) {
+        messageLien.textContent = 'Collez un lien complet qui commence par https://';
+        return;
+      }
+      boutonLien.disabled = true;
+      boutonLien.textContent = 'Recherche...';
+      messageLien.textContent = '';
+      blocTrouve.style.display = 'none';
+
+      var trouve = { trouve: false };
+      try {
+        var reponse = await fetch('/api/lien', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        trouve = await reponse.json();
+      } catch (e) {}
+
+      if (trouve.trouve) {
+        messageLien.textContent = 'Article trouvé. Vérifiez le prix avant d\'ajouter.';
+        document.getElementById('article-nom').textContent = trouve.nom;
+        document.getElementById('article-prix').value = trouve.prix;
+        document.getElementById('article-unite').textContent = trouve.unite === 'm²' ? '€ par m²' : '€ l\'unité';
+      } else {
+        messageLien.textContent = 'Je n\'ai pas pu lire le prix sur ce site. Tapez le nom et le prix vous-même ci-dessous.';
+        document.getElementById('article-nom').textContent = 'Article du lien';
+        document.getElementById('article-prix').value = '';
+        document.getElementById('article-unite').textContent = '€';
+      }
+      articleEnCours = { url: url };
+      blocTrouve.style.display = 'block';
+      boutonLien.disabled = false;
+      boutonLien.textContent = 'Chercher le prix';
+    });
+
+    document.getElementById('bouton-ajouter-lien').addEventListener('click', function () {
+      var prix = parseFloat(document.getElementById('article-prix').value);
+      var quantite = parseFloat(document.getElementById('quantite-lien').value) || 1;
+      var type = document.getElementById('type-travail').value;
+      if (!prix || prix <= 0) {
+        messageLien.textContent = 'Indiquez le prix de l\'article avant de l\'ajouter.';
+        return;
+      }
+      articlesLien.push({
+        nom: document.getElementById('article-nom').textContent,
+        prix: prix,
+        quantite: quantite,
+        unite: type === 'parquet' ? 'm²' : 'u',
+        mainOeuvre: type === 'parquet' ? MAIN_OEUVRE_PARQUET_M2 : MAIN_OEUVRE_ELEC_UNITE
+      });
+      document.getElementById('lien-article').value = '';
+      blocTrouve.style.display = 'none';
+      messageLien.textContent = 'Ajouté au devis. Articles du lien ajoutés : ' + articlesLien.length;
+      calculer();
     });
 
     bouton.addEventListener('click', async function () {
@@ -156,29 +261,31 @@
       var corps = document.getElementById('devis-lignes');
       corps.innerHTML = '';
 
+      function ajouterLigne(nom, quantite, unite, prix) {
+        var ligneTotal = quantite * prix;
+        totalHT += ligneTotal;
+        var tr = document.createElement('tr');
+        [nom, quantite + ' ' + unite, euros(prix), euros(ligneTotal)].forEach(function (texte, i) {
+          var td = document.createElement('td');
+          td.textContent = texte;
+          if (i > 0) { td.className = 'num'; }
+          tr.appendChild(td);
+        });
+        corps.appendChild(tr);
+      }
+
       champs.forEach(function (champ) {
         var quantite = parseFloat(champ.value) || 0;
         if (quantite > 0) {
-          var prix = parseFloat(champ.dataset.prix);
-          var ligneTotal = quantite * prix;
-          totalHT += ligneTotal;
           travaux.push({ article: champ.dataset.nom, quantite: quantite });
-
-          var tr = document.createElement('tr');
-          var cellules = [
-            champ.dataset.nom,
-            quantite + ' ' + champ.dataset.unite,
-            euros(prix),
-            euros(ligneTotal)
-          ];
-          cellules.forEach(function (texte, i) {
-            var td = document.createElement('td');
-            td.textContent = texte;
-            if (i > 0) { td.className = 'num'; }
-            tr.appendChild(td);
-          });
-          corps.appendChild(tr);
+          ajouterLigne(champ.dataset.nom, quantite, champ.dataset.unite, parseFloat(champ.dataset.prix));
         }
+      });
+
+      articlesLien.forEach(function (a) {
+        travaux.push({ article: a.nom, quantite: a.quantite });
+        ajouterLigne(a.nom, a.quantite, a.unite, a.prix);
+        ajouterLigne(MAIN_OEUVRE_LIBELLE + ' : ' + a.nom, a.quantite, a.unite, a.mainOeuvre);
       });
 
       if (travaux.length === 0) {
