@@ -27,8 +27,26 @@
     .bouton:hover { background: #ffd84d; }
     .bouton:disabled { opacity: 0.6; cursor: wait; }
     .note { font-size: 14px; margin-top: 12px; opacity: 0.85; }
-    .resultat { background: #ffffff; border-left: 6px solid #1e56b3; border-radius: 10px; padding: 24px; margin-top: 24px; white-space: pre-wrap; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: none; }
-    .resultat h2 { color: #0b2a5b; margin-bottom: 12px; white-space: normal; }
+
+    #devis-final { display: none; background: #ffffff; border-radius: 10px; padding: 32px; margin-top: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .devis-entete { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-bottom: 4px solid #ffc400; padding-bottom: 16px; margin-bottom: 20px; }
+    .devis-entete .societe { font-size: 26px; font-weight: bold; color: #0b2a5b; }
+    .devis-entete .infos { text-align: right; font-size: 15px; }
+    .devis-intro { margin-bottom: 20px; }
+    table.devis { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    table.devis th { background: #0b2a5b; color: #ffffff; padding: 10px; text-align: left; font-size: 14px; }
+    table.devis td { padding: 10px; border-bottom: 1px solid #e3e8f2; font-size: 15px; }
+    table.devis th.num, table.devis td.num { text-align: right; }
+    .devis-totaux { text-align: right; font-size: 16px; }
+    .devis-totaux .general { font-size: 24px; font-weight: bold; color: #0b2a5b; margin-top: 8px; }
+    .devis-pied { margin-top: 24px; font-size: 13px; opacity: 0.8; border-top: 1px solid #e3e8f2; padding-top: 12px; }
+
+    @media print {
+      header, .intro, h1, .categorie, .total, .no-print { display: none !important; }
+      body { background: #ffffff; }
+      main { margin: 0; max-width: 100%; }
+      #devis-final { box-shadow: none; margin: 0; padding: 0; }
+    }
   </style>
 </head>
 <body>
@@ -46,22 +64,22 @@
 
   <main>
     <h1>Demander un devis</h1>
-    <p class="intro">Choisissez vos articles et indiquez la quantité. Le total se calcule tout seul, puis l'IA prépare votre devis.</p>
+    <p class="intro">Choisissez vos articles et indiquez la quantité. Le total se calcule tout seul, puis votre devis est préparé.</p>
 
     <section class="categorie">
       <h2>💡 Électricité</h2>
-      <div class="ligne"><span class="nom">Prise standard</span><span class="prix">25 €</span><input type="number" min="0" value="0" data-prix="25" data-nom="Prise standard"></div>
-      <div class="ligne"><span class="nom">Interrupteur simple</span><span class="prix">30 €</span><input type="number" min="0" value="0" data-prix="30" data-nom="Interrupteur simple"></div>
-      <div class="ligne"><span class="nom">Prise design</span><span class="prix">45 €</span><input type="number" min="0" value="0" data-prix="45" data-nom="Prise design"></div>
-      <div class="ligne"><span class="nom">Prise connectée</span><span class="prix">70 €</span><input type="number" min="0" value="0" data-prix="70" data-nom="Prise connectée"></div>
-      <div class="ligne"><span class="nom">Tableau électrique</span><span class="prix">650 €</span><input type="number" min="0" value="0" data-prix="650" data-nom="Tableau électrique"></div>
+      <div class="ligne"><span class="nom">Prise standard</span><span class="prix">25 €</span><input type="number" min="0" value="0" data-prix="25" data-nom="Prise standard" data-unite="u"></div>
+      <div class="ligne"><span class="nom">Interrupteur simple</span><span class="prix">30 €</span><input type="number" min="0" value="0" data-prix="30" data-nom="Interrupteur simple" data-unite="u"></div>
+      <div class="ligne"><span class="nom">Prise design</span><span class="prix">45 €</span><input type="number" min="0" value="0" data-prix="45" data-nom="Prise design" data-unite="u"></div>
+      <div class="ligne"><span class="nom">Prise connectée</span><span class="prix">70 €</span><input type="number" min="0" value="0" data-prix="70" data-nom="Prise connectée" data-unite="u"></div>
+      <div class="ligne"><span class="nom">Tableau électrique</span><span class="prix">650 €</span><input type="number" min="0" value="0" data-prix="650" data-nom="Tableau électrique" data-unite="u"></div>
     </section>
 
     <section class="categorie">
       <h2>🪵 Parquet (prix par m²)</h2>
-      <div class="ligne"><span class="nom">Parquet stratifié</span><span class="prix">30 €/m²</span><input type="number" min="0" value="0" data-prix="30" data-nom="Parquet stratifié (m²)"></div>
-      <div class="ligne"><span class="nom">Parquet contrecollé</span><span class="prix">55 €/m²</span><input type="number" min="0" value="0" data-prix="55" data-nom="Parquet contrecollé (m²)"></div>
-      <div class="ligne"><span class="nom">Parquet massif</span><span class="prix">85 €/m²</span><input type="number" min="0" value="0" data-prix="85" data-nom="Parquet massif (m²)"></div>
+      <div class="ligne"><span class="nom">Parquet stratifié</span><span class="prix">30 €/m²</span><input type="number" min="0" value="0" data-prix="30" data-nom="Parquet stratifié" data-unite="m²"></div>
+      <div class="ligne"><span class="nom">Parquet contrecollé</span><span class="prix">55 €/m²</span><input type="number" min="0" value="0" data-prix="55" data-nom="Parquet contrecollé" data-unite="m²"></div>
+      <div class="ligne"><span class="nom">Parquet massif</span><span class="prix">85 €/m²</span><input type="number" min="0" value="0" data-prix="85" data-nom="Parquet massif" data-unite="m²"></div>
     </section>
 
     <section class="total">
@@ -71,9 +89,42 @@
       <p class="note">Estimation indicative. Le devis définitif est confirmé par 3PNT ELEC.</p>
     </section>
 
-    <section class="resultat" id="resultat">
-      <h2>Votre devis</h2>
-      <div id="texte-devis"></div>
+    <section id="devis-final">
+      <div class="devis-entete">
+        <div>
+          <div class="societe">⚡ 3PNT ELEC</div>
+          <div>Électricité et rénovation</div>
+        </div>
+        <div class="infos">
+          <div><strong>DEVIS</strong> n° <span id="devis-numero"></span></div>
+          <div>Date : <span id="devis-date"></span></div>
+          <div>Heure : <span id="devis-heure"></span></div>
+        </div>
+      </div>
+
+      <p class="devis-intro" id="devis-intro"></p>
+
+      <table class="devis">
+        <thead>
+          <tr>
+            <th>Poste</th>
+            <th class="num">Quantité</th>
+            <th class="num">Prix unitaire</th>
+            <th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody id="devis-lignes"></tbody>
+      </table>
+
+      <div class="devis-totaux">
+        <div>Total HT : <span id="devis-ht"></span></div>
+        <div>TVA (10 %) : <span id="devis-tva"></span></div>
+        <div class="general">Total TTC : <span id="devis-ttc"></span></div>
+      </div>
+
+      <p class="devis-pied">Devis indicatif, non contractuel, valable 30 jours. Le devis définitif est confirmé par 3PNT ELEC après étude de votre projet.</p>
+
+      <button class="bouton no-print" id="bouton-imprimer">Imprimer ou enregistrer en PDF</button>
     </section>
   </main>
 
@@ -81,8 +132,11 @@
     var champs = document.querySelectorAll('input[type=number]');
     var affichage = document.getElementById('total');
     var bouton = document.getElementById('bouton-devis');
-    var zoneResultat = document.getElementById('resultat');
-    var texteDevis = document.getElementById('texte-devis');
+    var zoneDevis = document.getElementById('devis-final');
+
+    function euros(n) {
+      return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    }
 
     function calculer() {
       var somme = 0;
@@ -98,14 +152,32 @@
 
     bouton.addEventListener('click', async function () {
       var travaux = [];
+      var totalHT = 0;
+      var corps = document.getElementById('devis-lignes');
+      corps.innerHTML = '';
+
       champs.forEach(function (champ) {
         var quantite = parseFloat(champ.value) || 0;
         if (quantite > 0) {
-          travaux.push({
-            article: champ.dataset.nom,
-            quantite: quantite,
-            prix_unitaire: parseFloat(champ.dataset.prix)
+          var prix = parseFloat(champ.dataset.prix);
+          var ligneTotal = quantite * prix;
+          totalHT += ligneTotal;
+          travaux.push({ article: champ.dataset.nom, quantite: quantite });
+
+          var tr = document.createElement('tr');
+          var cellules = [
+            champ.dataset.nom,
+            quantite + ' ' + champ.dataset.unite,
+            euros(prix),
+            euros(ligneTotal)
+          ];
+          cellules.forEach(function (texte, i) {
+            var td = document.createElement('td');
+            td.textContent = texte;
+            if (i > 0) { td.className = 'num'; }
+            tr.appendChild(td);
           });
+          corps.appendChild(tr);
         }
       });
 
@@ -114,9 +186,23 @@
         return;
       }
 
+      var maintenant = new Date();
+      var pad = function (n) { return String(n).padStart(2, '0'); };
+      var numero = maintenant.getFullYear() + pad(maintenant.getMonth() + 1) + pad(maintenant.getDate()) + '-' + pad(maintenant.getHours()) + pad(maintenant.getMinutes());
+
+      document.getElementById('devis-numero').textContent = numero;
+      document.getElementById('devis-date').textContent = maintenant.toLocaleDateString('fr-FR');
+      document.getElementById('devis-heure').textContent = pad(maintenant.getHours()) + ':' + pad(maintenant.getMinutes());
+
+      var tva = totalHT * 0.10;
+      document.getElementById('devis-ht').textContent = euros(totalHT);
+      document.getElementById('devis-tva').textContent = euros(tva);
+      document.getElementById('devis-ttc').textContent = euros(totalHT + tva);
+
       bouton.disabled = true;
-      bouton.textContent = 'L\'IA prépare votre devis...';
-      zoneResultat.style.display = 'none';
+      bouton.textContent = 'Préparation du devis...';
+      document.getElementById('devis-intro').textContent = '';
+      zoneDevis.style.display = 'block';
 
       try {
         var reponse = await fetch('/api/devis', {
@@ -125,18 +211,20 @@
           body: JSON.stringify({ travaux: travaux })
         });
         var data = await reponse.json();
-        texteDevis.textContent = data.devis || data.error || 'Une erreur est survenue.';
+        document.getElementById('devis-intro').textContent = data.devis || '';
       } catch (e) {
-        texteDevis.textContent = 'Impossible de contacter le serveur. Réessayez dans un instant.';
+        document.getElementById('devis-intro').textContent = 'Voici le détail de votre estimation.';
       }
 
-      zoneResultat.style.display = 'block';
       bouton.disabled = false;
       bouton.textContent = 'Demander mon devis';
-      zoneResultat.scrollIntoView({ behavior: 'smooth' });
+      zoneDevis.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    document.getElementById('bouton-imprimer').addEventListener('click', function () {
+      window.print();
     });
   </script>
 
 </body>
 </html>
-
